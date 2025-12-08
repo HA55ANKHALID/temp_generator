@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!body.parties || !Array.isArray(body.parties) || body.parties.length === 0) {
+    if (!body.parties || !Array.isArray(body.parties) || body.parties.length < 2) {
       return NextResponse.json(
-        { error: 'At least one party is required' },
+        { error: 'At least two parties are required' },
         { status: 400 }
       )
     }
@@ -121,16 +121,12 @@ Produce a complete legal template including definitions, obligations, duration, 
       )
     }
 
-    // Generate PDF using pdf-lib
-    const pdfBytes = await generatePDF(generatedText, body.documentType)
-
-    // Return PDF as response
-    return new NextResponse(Buffer.from(pdfBytes), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="legal-template.pdf"',
-      },
+    // Return text content for review instead of PDF
+    return NextResponse.json({
+      templateText: generatedText,
+      documentType: body.documentType,
+      keyTerms: body.keyTerms,
+      extraNotes: body.extraNotes || '',
     })
   } catch (error) {
     console.error('Error generating template:', error)

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { pakistanLegalFacts } from '../utils/legalFacts'
 
 type DocumentType = 
   | 'Rent Agreement'
@@ -26,6 +27,12 @@ interface FormData {
   extraNotes: string
 }
 
+interface Clause {
+  id: string
+  text: string
+  isModelAdded: boolean
+}
+
 export default function GeneratePage() {
   const [formData, setFormData] = useState<FormData>({
     documentType: '',
@@ -38,7 +45,186 @@ export default function GeneratePage() {
     extraNotes: '',
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [isModifying, setIsModifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [templateText, setTemplateText] = useState('')
+  const [reviewedTemplateText, setReviewedTemplateText] = useState('')
+  const [documentType, setDocumentType] = useState('')
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [currentFact, setCurrentFact] = useState('')
+  const [modificationRequest, setModificationRequest] = useState('')
+  const [removedClauseIds, setRemovedClauseIds] = useState<Set<string>>(new Set())
+
+  // Function to identify model-added content
+  const identifyModelAddedContent = (text: string, keyTerms: string, extraNotes: string): Clause[] => {
+    const clauses: Clause[] = []
+    const lines = text.split('\n')
+    
+    // Create a combined reference text from user inputs (normalize for comparison)
+    const referenceText = `${keyTerms} ${extraNotes}`.toLowerCase()
+    // Extract meaningful words and phrases from user input
+    const referenceWords = new Set(
+      referenceText
+        .split(/[\s,;:]+/)
+        .filter(word => word.length > 2) // Include shorter words too
+        .map(word => word.toLowerCase().replace(/[^\w]/g, ''))
+    )
+    
+    // Also extract key phrases (2-3 word combinations)
+    const referencePhrases = new Set<string>()
+    const words = referenceText.split(/\s+/).filter(w => w.length > 2)
+    for (let i = 0; i < words.length - 1; i++) {
+      const phrase = `${words[i]} ${words[i + 1]}`.toLowerCase().replace(/[^\w\s]/g, '')
+      if (phrase.length > 5) referencePhrases.add(phrase)
+    }
+
+    let currentClause = ''
+    let clauseId = 0
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      
+      if (!line) {
+        if (currentClause.trim()) {
+          const clauseLower = currentClause.toLowerCase()
+          
+          // Check if clause contains user-specified content
+          const clauseWords = clauseLower.split(/[\s,;:]+/).map(w => w.replace(/[^\w]/g, ''))
+          const hasUserWords = clauseWords.some(word => 
+            word.length > 2 && referenceWords.has(word)
+          )
+          
+          // Check for phrases
+          const hasUserPhrases = Array.from(referencePhrases).some(phrase => 
+            clauseLower.includes(phrase)
+          )
+          
+          // Check if it's a standard legal clause (likely model-added)
+          const standardClausePatterns = [
+            /^\s*(whereas|now\s+therefore|in\s+witness|disclaimer|governing\s+law|dispute\s+resolution|termination|obligations|definitions|severability|force\s+majeure|entire\s+agreement|amendment|waiver|notices|assignment|indemnification)/i,
+            /this\s+agreement\s+shall\s+be\s+governed/i,
+            /any\s+dispute\s+arising/i,
+            /the\s+parties\s+hereto/i,
+          ]
+          
+          const isStandardClause = standardClausePatterns.some(pattern => 
+            pattern.test(currentClause)
+          )
+          
+          // Mark as model-added if it's a standard clause without user content, or if it's long without user content
+          const isModelAdded = (isStandardClause && !hasUserWords && !hasUserPhrases) || 
+                               (!hasUserWords && !hasUserPhrases && currentClause.length > 100)
+          
+          clauses.push({
+            id: `clause-${clauseId++}`,
+            text: currentClause.trim(),
+            isModelAdded
+          })
+          currentClause = ''
+        }
+        continue
+      }
+
+      // Check if line is a heading
+      const isHeading = /^[A-Z][A-Z\s]+$/.test(line) || 
+                       /^\d+[\.\)]\s+[A-Z]/.test(line) || 
+                       (line.length < 60 && /^[A-Z]/.test(line))
+      
+      if (isHeading && currentClause.trim()) {
+        // Save previous clause
+        const clauseLower = currentClause.toLowerCase()
+        const clauseWords = clauseLower.split(/[\s,;:]+/).map(w => w.replace(/[^\w]/g, ''))
+        const hasUserWords = clauseWords.some(word => 
+          word.length > 2 && referenceWords.has(word)
+        )
+        const hasUserPhrases = Array.from(referencePhrases).some(phrase => 
+          clauseLower.includes(phrase)
+        )
+        const standardClausePatterns = [
+          /^\s*(whereas|now\s+therefore|in\s+witness|disclaimer|governing\s+law|dispute\s+resolution|termination|obligations|definitions|severability|force\s+majeure|entire\s+agreement|amendment|waiver|notices|assignment|indemnification)/i,
+          /this\s+agreement\s+shall\s+be\s+governed/i,
+          /any\s+dispute\s+arising/i,
+          /the\s+parties\s+hereto/i,
+        ]
+        const isStandardClause = standardClausePatterns.some(pattern => 
+          pattern.test(currentClause)
+        )
+        const isModelAdded = (isStandardClause && !hasUserWords && !hasUserPhrases) || 
+                             (!hasUserWords && !hasUserPhrases && currentClause.length > 100)
+        
+        clauses.push({
+          id: `clause-${clauseId++}`,
+          text: currentClause.trim(),
+          isModelAdded
+        })
+        currentClause = line + '\n'
+      } else {
+        currentClause += (currentClause ? '\n' : '') + line
+      }
+    }
+
+    // Add last clause
+    if (currentClause.trim()) {
+      const clauseLower = currentClause.toLowerCase()
+      const clauseWords = clauseLower.split(/[\s,;:]+/).map(w => w.replace(/[^\w]/g, ''))
+      const hasUserWords = clauseWords.some(word => 
+        word.length > 2 && referenceWords.has(word)
+      )
+      const hasUserPhrases = Array.from(referencePhrases).some(phrase => 
+        clauseLower.includes(phrase)
+      )
+      const standardClausePatterns = [
+        /^\s*(whereas|now\s+therefore|in\s+witness|disclaimer|governing\s+law|dispute\s+resolution|termination|obligations|definitions|severability|force\s+majeure|entire\s+agreement|amendment|waiver|notices|assignment|indemnification)/i,
+        /this\s+agreement\s+shall\s+be\s+governed/i,
+        /any\s+dispute\s+arising/i,
+        /the\s+parties\s+hereto/i,
+      ]
+      const isStandardClause = standardClausePatterns.some(pattern => 
+        pattern.test(currentClause)
+      )
+      const isModelAdded = (isStandardClause && !hasUserWords && !hasUserPhrases) || 
+                           (!hasUserWords && !hasUserPhrases && currentClause.length > 100)
+      
+      clauses.push({
+        id: `clause-${clauseId++}`,
+        text: currentClause.trim(),
+        isModelAdded
+      })
+    }
+
+    return clauses
+  }
+
+  // Parse template into clauses
+  const clauses = useMemo(() => {
+    if (!templateText) return []
+    return identifyModelAddedContent(templateText, formData.keyTerms, formData.extraNotes)
+  }, [templateText, formData.keyTerms, formData.extraNotes])
+
+  // Generate reviewed template text
+  useEffect(() => {
+    if (!templateText) return
+    
+    const activeClauses = clauses.filter(c => !removedClauseIds.has(c.id))
+    const reviewedText = activeClauses.map(c => c.text).join('\n\n')
+    setReviewedTemplateText(reviewedText)
+  }, [clauses, removedClauseIds, templateText])
+
+  // Show random legal facts during model processing
+  useEffect(() => {
+    if (!isLoading && !isModifying) return
+
+    const showRandomFact = () => {
+      const randomIndex = Math.floor(Math.random() * pakistanLegalFacts.length)
+      setCurrentFact(pakistanLegalFacts[randomIndex])
+    }
+
+    showRandomFact()
+    const interval = setInterval(showRandomFact, 3000) // Change fact every 3 seconds
+
+    return () => clearInterval(interval)
+  }, [isLoading, isModifying])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>
@@ -72,7 +258,8 @@ export default function GeneratePage() {
   }
 
   const removeParty = (index: number) => {
-    if (formData.parties.length > 1) {
+    // Ensure at least 2 parties are always present
+    if (formData.parties.length > 2) {
       setFormData((prev) => ({
         ...prev,
         parties: prev.parties.filter((_, i) => i !== index),
@@ -84,6 +271,7 @@ export default function GeneratePage() {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
+    setRemovedClauseIds(new Set())
 
     // Validation
     if (!formData.documentType || !formData.jurisdiction || !formData.keyTerms) {
@@ -92,8 +280,8 @@ export default function GeneratePage() {
       return
     }
 
-    if (formData.parties.length === 0) {
-      setError('At least one party is required.')
+    if (formData.parties.length < 2) {
+      setError('At least two parties are required.')
       setIsLoading(false)
       return
     }
@@ -137,7 +325,95 @@ export default function GeneratePage() {
         throw new Error(errorData.error || 'Failed to generate template')
       }
 
-      // Handle PDF download
+      const data = await response.json()
+      setTemplateText(data.templateText)
+      setDocumentType(data.documentType)
+      setShowReviewModal(true)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong while generating the document. Please try again.'
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleRemoveClause = (clauseId: string) => {
+    setRemovedClauseIds((prev) => new Set([...prev, clauseId]))
+  }
+
+  const handleRestoreClause = (clauseId: string) => {
+    setRemovedClauseIds((prev) => {
+      const newSet = new Set(prev)
+      newSet.delete(clauseId)
+      return newSet
+    })
+  }
+
+  const handleModify = async () => {
+    if (!modificationRequest.trim()) {
+      setError('Please enter your modification request.')
+      return
+    }
+
+    setIsModifying(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/modify-template', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          templateText: reviewedTemplateText,
+          documentType: documentType,
+          modificationRequest: modificationRequest,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to modify template')
+      }
+
+      const data = await response.json()
+      setTemplateText(data.templateText)
+      setModificationRequest('')
+      setRemovedClauseIds(new Set())
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong while modifying the template. Please try again.'
+      )
+    } finally {
+      setIsModifying(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    setShowReviewModal(false)
+
+    try {
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          templateText: reviewedTemplateText,
+          documentType: documentType,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF')
+      }
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -151,11 +427,50 @@ export default function GeneratePage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Something went wrong while generating the document. Please try again.'
+          : 'Something went wrong while generating the PDF. Please try again.'
       )
     } finally {
-      setIsLoading(false)
+      setIsDownloading(false)
     }
+  }
+
+  // Format template text for PDF-like preview
+  const formatTemplateForPreview = (text: string) => {
+    const lines = text.split('\n')
+    const elements: JSX.Element[] = []
+    
+    lines.forEach((line, index) => {
+      const trimmed = line.trim()
+      if (!trimmed) {
+        elements.push(<div key={index} className="h-3" />)
+        return
+      }
+      
+      // Check if it's a heading (all caps, numbered section, or short uppercase line)
+      const isHeading = 
+        (trimmed === trimmed.toUpperCase() && trimmed.length < 100 && /^[A-Z\s]+$/.test(trimmed)) ||
+        /^\d+[\.\)]\s+[A-Z]/.test(trimmed) ||
+        (/^[A-Z]/.test(trimmed) && trimmed.length < 80 && !trimmed.includes('.') && !trimmed.includes(','))
+      
+      if (isHeading) {
+        elements.push(
+          <div key={index} className="mt-6 mb-4 first:mt-0">
+            <h3 className="text-base font-bold text-gray-900 uppercase tracking-wide">
+              {trimmed}
+            </h3>
+          </div>
+        )
+      } else {
+        // Regular paragraph
+        elements.push(
+          <p key={index} className="mb-3 text-sm text-gray-800 leading-relaxed text-justify">
+            {trimmed}
+          </p>
+        )
+      }
+    })
+    
+    return elements
   }
 
   return (
@@ -243,7 +558,7 @@ export default function GeneratePage() {
                       <h3 className="text-sm font-semibold text-gray-700">
                         Party {index + 1}
                       </h3>
-                      {formData.parties.length > 1 && (
+                      {formData.parties.length > 2 && (
                         <button
                           type="button"
                           onClick={() => removeParty(index)}
@@ -418,7 +733,128 @@ export default function GeneratePage() {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Review Template</h2>
+              <p className="text-sm text-gray-600 mt-2">
+                Review the template below. If you need changes, describe them in the text area and click "Apply Changes".
+              </p>
+            </div>
+
+            {/* Template Preview (PDF-like format) */}
+            <div className="flex-1 overflow-y-auto p-8 bg-gray-100">
+              <div className="bg-white shadow-xl rounded-lg p-12 max-w-4xl mx-auto min-h-full" style={{ fontFamily: 'serif' }}>
+                {/* Document Title */}
+                <div className="text-center mb-10 border-b-2 border-gray-300 pb-6">
+                  <h1 className="text-3xl font-bold text-gray-900">{documentType}</h1>
+                </div>
+
+                {/* Template Content */}
+                <div className="space-y-1">
+                  {formatTemplateForPreview(reviewedTemplateText)}
+                </div>
+              </div>
+            </div>
+
+            {/* Chat/Modification Area */}
+            <div className="p-6 border-t border-gray-200 bg-white">
+              <div className="mb-4">
+                <label
+                  htmlFor="modificationRequest"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Request Changes (optional)
+                </label>
+                <textarea
+                  id="modificationRequest"
+                  value={modificationRequest}
+                  onChange={(e) => setModificationRequest(e.target.value)}
+                  rows={3}
+                  placeholder="e.g., Add a clause about late payment penalties, Remove the force majeure clause, Change the notice period to 30 days..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  disabled={isModifying}
+                />
+              </div>
+
+              {error && (
+                <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setShowReviewModal(false)
+                    setRemovedClauseIds(new Set())
+                    setModificationRequest('')
+                  }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
+                  disabled={isModifying}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleModify}
+                  disabled={isModifying || !modificationRequest.trim()}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg disabled:cursor-not-allowed"
+                >
+                  {isModifying ? 'Applying Changes...' : 'Apply Changes'}
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg"
+                  disabled={isModifying}
+                >
+                  Download Template
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Model Processing Modal (for generation and modification) */}
+      {(isLoading || isModifying) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="mb-6">
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {isLoading ? 'Generating Template...' : 'Applying Changes...'}
+            </h2>
+            {currentFact && (
+              <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                <p className="text-sm text-indigo-900 font-medium mb-2">
+                  💡 Did you know?
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {currentFact}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Download Loading Modal */}
+      {isDownloading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="mb-6">
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Generating PDF...
+            </h2>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
-
