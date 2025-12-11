@@ -455,7 +455,7 @@ export default function GeneratePage() {
       if (isHeading) {
         elements.push(
           <div key={index} className="mt-6 mb-4 first:mt-0">
-            <h3 className="text-base font-bold text-gray-900 uppercase tracking-wide">
+            <h3 className="text-base font-bold text-charcoal uppercase tracking-wide">
               {trimmed}
             </h3>
           </div>
@@ -463,7 +463,7 @@ export default function GeneratePage() {
       } else {
         // Regular paragraph
         elements.push(
-          <p key={index} className="mb-3 text-sm text-gray-800 leading-relaxed text-justify">
+          <p key={index} className="mb-3 text-sm text-charcoal leading-relaxed text-justify">
             {trimmed}
           </p>
         )
@@ -474,19 +474,19 @@ export default function GeneratePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <main className="min-h-screen bg-midnight-blue py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
           <Link
             href="/"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-crimson hover:text-crimson-dark font-medium"
           >
             ← Back to Home
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        <div className="bg-dark-slate rounded-lg shadow-xl p-8">
+          <h1 className="text-3xl font-bold text-white mb-6">
             Generate Legal Template
           </h1>
 
@@ -494,9 +494,9 @@ export default function GeneratePage() {
             <div>
               <label
                 htmlFor="documentType"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-white mb-2"
               >
-                Document Type <span className="text-red-500">*</span>
+                Document Type <span className="text-crimson">*</span>
               </label>
               <select
                 id="documentType"
@@ -504,7 +504,7 @@ export default function GeneratePage() {
                 value={formData.documentType}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 bg-dark-gray border border-medium-gray rounded-lg text-white focus:ring-2 focus:ring-crimson focus:border-crimson"
               >
                 <option value="">Select a document type</option>
                 <option value="Rent Agreement">Rent Agreement</option>
@@ -518,9 +518,9 @@ export default function GeneratePage() {
             <div>
               <label
                 htmlFor="jurisdiction"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-white mb-2"
               >
-                Jurisdiction / City <span className="text-red-500">*</span>
+                Jurisdiction / City <span className="text-crimson">*</span>
               </label>
               <input
                 type="text"
@@ -530,19 +530,19 @@ export default function GeneratePage() {
                 onChange={handleChange}
                 placeholder="e.g., Karachi, Sindh, Pakistan"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Parties <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-white">
+                  Parties <span className="text-crimson">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={addParty}
-                  className="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-medium py-1 px-3 rounded transition-colors"
+                  className="text-sm bg-crimson hover:bg-crimson-dark text-white font-medium py-1 px-3 rounded transition-colors"
                 >
                   + Add Party
                 </button>
@@ -552,17 +552,17 @@ export default function GeneratePage() {
                 {formData.parties.map((party, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                    className="border border-medium-gray rounded-lg p-4 bg-midnight-blue"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-700">
+                      <h3 className="text-sm font-semibold text-white">
                         Party {index + 1}
                       </h3>
                       {formData.parties.length > 2 && (
                         <button
                           type="button"
                           onClick={() => removeParty(index)}
-                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                          className="text-sm text-crimson hover:text-crimson-dark font-medium"
                         >
                           Remove
                         </button>
@@ -573,9 +573,9 @@ export default function GeneratePage() {
                       <div>
                         <label
                           htmlFor={`party-${index}-name`}
-                          className="block text-xs font-medium text-gray-600 mb-1"
+                          className="block text-xs font-medium text-gray-400 mb-1"
                         >
-                          Name <span className="text-red-500">*</span>
+                          Name <span className="text-crimson">*</span>
                         </label>
                         <input
                           type="text"
@@ -586,16 +586,16 @@ export default function GeneratePage() {
                           }
                           placeholder="Full name"
                           required
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 text-sm bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
                         />
                       </div>
 
                       <div>
                         <label
                           htmlFor={`party-${index}-role`}
-                          className="block text-xs font-medium text-gray-600 mb-1"
+                          className="block text-xs font-medium text-gray-400 mb-1"
                         >
-                          Role <span className="text-red-500">*</span>
+                          Role <span className="text-crimson">*</span>
                         </label>
                         <input
                           type="text"
@@ -606,14 +606,14 @@ export default function GeneratePage() {
                           }
                           placeholder="e.g., Landlord, Tenant, Employer, Employee"
                           required
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 text-sm bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
                         />
                       </div>
 
                       <div>
                         <label
                           htmlFor={`party-${index}-identifier`}
-                          className="block text-xs font-medium text-gray-600 mb-1"
+                          className="block text-xs font-medium text-gray-400 mb-1"
                         >
                           Identifier (CNIC/NTN)
                         </label>
@@ -625,14 +625,14 @@ export default function GeneratePage() {
                             handlePartyChange(index, 'identifier', e.target.value)
                           }
                           placeholder="e.g., 12345-1234567-1"
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 text-sm bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
                         />
                       </div>
 
                       <div>
                         <label
                           htmlFor={`party-${index}-contact`}
-                          className="block text-xs font-medium text-gray-600 mb-1"
+                          className="block text-xs font-medium text-gray-400 mb-1"
                         >
                           Contact
                         </label>
@@ -644,7 +644,7 @@ export default function GeneratePage() {
                             handlePartyChange(index, 'contact', e.target.value)
                           }
                           placeholder="Phone or email"
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 text-sm bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
                         />
                       </div>
                     </div>
@@ -652,7 +652,7 @@ export default function GeneratePage() {
                     <div className="mt-4">
                       <label
                         htmlFor={`party-${index}-address`}
-                        className="block text-xs font-medium text-gray-600 mb-1"
+                        className="block text-xs font-medium text-gray-400 mb-1"
                       >
                         Address
                       </label>
@@ -664,7 +664,7 @@ export default function GeneratePage() {
                         }
                         rows={2}
                         placeholder="Full address"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-3 py-2 text-sm bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
                       />
                     </div>
                   </div>
@@ -675,9 +675,9 @@ export default function GeneratePage() {
             <div>
               <label
                 htmlFor="keyTerms"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-white mb-2"
               >
-                Key Terms / Details <span className="text-red-500">*</span>
+                Key Terms / Details <span className="text-crimson">*</span>
               </label>
               <textarea
                 id="keyTerms"
@@ -687,14 +687,14 @@ export default function GeneratePage() {
                 rows={4}
                 placeholder="e.g., rent amount, duration, salary, notice period, etc."
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
               />
             </div>
 
             <div>
               <label
                 htmlFor="extraNotes"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-white mb-2"
               >
                 Additional Clauses / Notes (optional)
               </label>
@@ -705,27 +705,27 @@ export default function GeneratePage() {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Any additional information or specific clauses..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="bg-dark-slate border-l-4 border-crimson p-4 rounded">
+                <p className="text-sm text-white">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+              className="w-full bg-crimson hover:bg-crimson-dark disabled:bg-medium-gray text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
             >
               {isLoading ? 'Generating template...' : 'Generate Template'}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-600 leading-relaxed">
+          <div className="mt-8 pt-6 border-t border-medium-gray">
+            <p className="text-xs text-gray-400 leading-relaxed">
               <strong>Disclaimer:</strong> This tool generates AI-based legal templates
               for Pakistan. It is not legal advice. Always have a licensed Pakistani
               lawyer review any document before use.
@@ -737,20 +737,20 @@ export default function GeneratePage() {
       {/* Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Review Template</h2>
-              <p className="text-sm text-gray-600 mt-2">
+          <div className="bg-dark-slate rounded-lg shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col">
+            <div className="p-6 border-b border-medium-gray">
+              <h2 className="text-2xl font-bold text-white">Review Template</h2>
+              <p className="text-sm text-gray-400 mt-2">
                 Review the template below. If you need changes, describe them in the text area and click "Apply Changes".
               </p>
             </div>
 
             {/* Template Preview (PDF-like format) */}
-            <div className="flex-1 overflow-y-auto p-8 bg-gray-100">
+            <div className="flex-1 overflow-y-auto p-8 bg-midnight-blue">
               <div className="bg-white shadow-xl rounded-lg p-12 max-w-4xl mx-auto min-h-full" style={{ fontFamily: 'serif' }}>
                 {/* Document Title */}
                 <div className="text-center mb-10 border-b-2 border-gray-300 pb-6">
-                  <h1 className="text-3xl font-bold text-gray-900">{documentType}</h1>
+                  <h1 className="text-3xl font-bold text-charcoal">{documentType}</h1>
                 </div>
 
                 {/* Template Content */}
@@ -761,11 +761,11 @@ export default function GeneratePage() {
             </div>
 
             {/* Chat/Modification Area */}
-            <div className="p-6 border-t border-gray-200 bg-white">
+            <div className="p-6 border-t border-medium-gray bg-dark-slate">
               <div className="mb-4">
                 <label
                   htmlFor="modificationRequest"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-white mb-2"
                 >
                   Request Changes (optional)
                 </label>
@@ -775,14 +775,14 @@ export default function GeneratePage() {
                   onChange={(e) => setModificationRequest(e.target.value)}
                   rows={3}
                   placeholder="e.g., Add a clause about late payment penalties, Remove the force majeure clause, Change the notice period to 30 days..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  className="w-full px-4 py-2 bg-dark-gray border border-medium-gray rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-crimson focus:border-crimson resize-none"
                   disabled={isModifying}
                 />
               </div>
 
               {error && (
-                <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                  <p className="text-sm text-red-700">{error}</p>
+                <div className="mb-4 bg-dark-slate border-l-4 border-crimson p-3 rounded">
+                  <p className="text-sm text-white">{error}</p>
                 </div>
               )}
 
@@ -793,7 +793,7 @@ export default function GeneratePage() {
                     setRemovedClauseIds(new Set())
                     setModificationRequest('')
                   }}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
+                  className="flex-1 bg-medium-gray hover:bg-dark-gray text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                   disabled={isModifying}
                 >
                   Cancel
@@ -801,13 +801,13 @@ export default function GeneratePage() {
                 <button
                   onClick={handleModify}
                   disabled={isModifying || !modificationRequest.trim()}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg disabled:cursor-not-allowed"
+                  className="flex-1 bg-crimson hover:bg-crimson-dark disabled:bg-medium-gray text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg disabled:cursor-not-allowed"
                 >
                   {isModifying ? 'Applying Changes...' : 'Apply Changes'}
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg"
+                  className="flex-1 bg-crimson hover:bg-crimson-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg"
                   disabled={isModifying}
                 >
                   Download Template
@@ -821,19 +821,19 @@ export default function GeneratePage() {
       {/* Model Processing Modal (for generation and modification) */}
       {(isLoading || isModifying) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
+          <div className="bg-dark-slate rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
             <div className="mb-6">
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-crimson border-t-transparent"></div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-white mb-4">
               {isLoading ? 'Generating Template...' : 'Applying Changes...'}
             </h2>
             {currentFact && (
-              <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                <p className="text-sm text-indigo-900 font-medium mb-2">
+              <div className="mt-6 p-4 bg-midnight-blue rounded-lg border border-medium-gray">
+                <p className="text-sm text-crimson font-medium mb-2">
                   💡 Did you know?
                 </p>
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-gray-400 leading-relaxed">
                   {currentFact}
                 </p>
               </div>
@@ -845,11 +845,11 @@ export default function GeneratePage() {
       {/* Download Loading Modal */}
       {isDownloading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
+          <div className="bg-dark-slate rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
             <div className="mb-6">
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-crimson border-t-transparent"></div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-white mb-4">
               Generating PDF...
             </h2>
           </div>

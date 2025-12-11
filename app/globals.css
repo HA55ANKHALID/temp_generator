@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-midnight-blue text-white;
+  }
+  
+  select option {
+    @apply bg-dark-gray text-white;
+  }
+}
+
