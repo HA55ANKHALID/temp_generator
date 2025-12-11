@@ -1,15 +1,18 @@
 "use client";
-import Link from "next/link";
 
 export default function AuthButton() {
-  // You can customize this based on your authentication logic
-  // For now, it's a simple login button
+  const handleSignOut = () => {
+    // Add your sign out logic here
+    // For example: signOut(), clear session, redirect, etc.
+    console.log("Sign out clicked");
+  };
+
   return (
-    <Link
-      href="/login"
-      className="bg-[#e94560] hover:bg-[#d62848] text-white px-4 py-2 rounded transition-colors duration-200"
+    <button 
+      onClick={handleSignOut}
+      className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15"
     >
-      Login
-    </Link>
+      Sign Out
+    </button>
   );
 }
